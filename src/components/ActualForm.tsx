@@ -10,19 +10,19 @@ interface Props {
   onSave(input: ActualInput, id?: number): Promise<string | null>
 }
 
-interface Form { budget_id: string; scope: string; spent_on: string; amount: string; note: string }
+interface Form { budget_id: string; scope: string; spent_on: string; amount: string; spender: string; note: string }
 
 export default function ActualForm({ budgets, defaultBudgetId, editing, open, onClose, onSave }: Props) {
   const ref = useRef<HTMLDialogElement>(null)
-  const [form, setForm] = useState<Form>({ budget_id: '', scope: '', spent_on: '', amount: '', note: '' })
+  const [form, setForm] = useState<Form>({ budget_id: '', scope: '', spent_on: '', amount: '', spender: '', note: '' })
   const [errors, setErrors] = useState<string[]>([])
   const [busy, setBusy] = useState(false)
 
   useEffect(() => {
     if (open) {
       setForm(editing
-        ? { budget_id: String(editing.budget_id), scope: editing.scope, spent_on: editing.spent_on, amount: String(editing.amount), note: editing.note }
-        : { budget_id: defaultBudgetId === null ? '' : String(defaultBudgetId), scope: '', spent_on: new Date().toISOString().slice(0, 10), amount: '', note: '' })
+        ? { budget_id: String(editing.budget_id), scope: editing.scope, spent_on: editing.spent_on, amount: String(editing.amount), spender: editing.spender, note: editing.note }
+        : { budget_id: defaultBudgetId === null ? '' : String(defaultBudgetId), scope: '', spent_on: new Date().toISOString().slice(0, 10), amount: '', spender: lastSpender(), note: '' })
       setErrors([])
       ref.current?.showModal()
     } else {
@@ -44,6 +44,8 @@ export default function ActualForm({ budgets, defaultBudgetId, editing, open, on
     if (!form.spent_on) errs.push('日期不可空白')
     const amount = Number(form.amount)
     if (form.amount.trim() === '' || !Number.isFinite(amount) || amount < 0) errs.push('金額必須是不小於 0 的數字')
+    const spender = form.spender.trim()
+    if (!spender) errs.push('動用人不可空白')
     if (errs.length) {
       setErrors(errs)
       return
@@ -54,11 +56,15 @@ export default function ActualForm({ budgets, defaultBudgetId, editing, open, on
       scope: form.scope as Actual['scope'],
       spent_on: form.spent_on,
       amount,
+      spender,
       note: form.note.trim(),
     }, editing?.id)
     setBusy(false)
     if (err) setErrors([err])
-    else onClose()
+    else {
+      rememberSpender(spender)
+      onClose()
+    }
   }
 
   return (
@@ -93,6 +99,10 @@ export default function ActualForm({ budgets, defaultBudgetId, editing, open, on
           <p className="warn">這個日期不在「{budget.name}」的期間({budget.start_date} 到 {budget.end_date})內。仍可儲存,但總覽依日期歸期的圖不會把它算進該期。</p>
         )}
         <label>
+          動用人 *
+          <input value={form.spender} onChange={set('spender')} required placeholder="姓名" />
+        </label>
+        <label>
           說明
           <textarea value={form.note} onChange={set('note')} rows={2} placeholder="發票號、帳單月份…" />
         </label>
@@ -104,4 +114,12 @@ export default function ActualForm({ budgets, defaultBudgetId, editing, open, on
       </form>
     </dialog>
   )
+}
+
+// 記住上次填的動用人,下一筆預填(只存在這台瀏覽器)
+function lastSpender(): string {
+  try { return localStorage.getItem('rm.lastSpender') ?? '' } catch { return '' }
+}
+function rememberSpender(name: string) {
+  try { localStorage.setItem('rm.lastSpender', name) } catch { /* 忽略 */ }
 }

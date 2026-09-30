@@ -128,11 +128,11 @@ import type { Actual } from './types'
 
 describe('actualsBreakdown', () => {
   const acts: Actual[] = [
-    { id: 1, budget_id: 1, scope: 'Azure', spent_on: '2026-10-05', amount: 30000, note: '' },
-    { id: 2, budget_id: 1, scope: 'Azure', spent_on: '2026-11-05', amount: 10000, note: '' },
-    { id: 3, budget_id: 1, scope: 'Claude', spent_on: '2026-12-31', amount: 5000, note: '' },
-    { id: 4, budget_id: 1, scope: '', spent_on: '2026-12-01', amount: 5000, note: '' },
-    { id: 5, budget_id: 2, scope: 'equipment', spent_on: '2027-01-15', amount: 400000, note: '' },
+    { id: 1, budget_id: 1, scope: 'Azure', spent_on: '2026-10-05', amount: 30000, spender: '甲', note: '' },
+    { id: 2, budget_id: 1, scope: 'Azure', spent_on: '2026-11-05', amount: 10000, spender: '甲', note: '' },
+    { id: 3, budget_id: 1, scope: 'Claude', spent_on: '2026-12-31', amount: 5000, spender: '乙', note: '' },
+    { id: 4, budget_id: 1, scope: '', spent_on: '2026-12-01', amount: 5000, spender: '乙', note: '' },
+    { id: 5, budget_id: 2, scope: 'equipment', spent_on: '2027-01-15', amount: 400000, spender: '丙', note: '' },
   ]
   it('依動用日期落在期間內、按大類加總、大到小、算佔比', () => {
     const r = actualsBreakdown(acts, '2026-10-01', '2026-12-31')

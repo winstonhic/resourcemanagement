@@ -60,7 +60,7 @@ export default function Actuals() {
         <div className="table-wrap">
           <table className="actuals">
             <thead>
-              <tr><th>日期</th><th>大類</th><th className="num">實付金額</th><th>說明</th><th>操作</th></tr>
+              <tr><th>日期</th><th>大類</th><th className="num">實付金額</th><th>動用人</th><th>說明</th><th>操作</th></tr>
             </thead>
             <tbody>
               {rows.map((a) => (
@@ -68,6 +68,7 @@ export default function Actuals() {
                   <td>{a.spent_on}</td>
                   <td>{a.scope ? SCOPE_LABEL[a.scope] : <span className="hint">未指定</span>}</td>
                   <td className="num">{fmtTwd(a.amount)}</td>
+                  <td>{a.spender}</td>
                   <td className="note">{a.note}</td>
                   <td className="actions">
                     <button type="button" className="quiet" onClick={() => { setEditing(a); setOpen(true) }}>編輯</button>
@@ -77,7 +78,7 @@ export default function Actuals() {
               ))}
             </tbody>
             <tfoot>
-              <tr><td colSpan={2}>合計</td><td className="num">{fmtTwd(spent)}</td><td colSpan={2} /></tr>
+              <tr><td colSpan={2}>合計</td><td className="num">{fmtTwd(spent)}</td><td colSpan={3} /></tr>
             </tfoot>
           </table>
         </div>

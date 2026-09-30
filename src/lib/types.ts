@@ -52,6 +52,8 @@ export interface Actual {
   spent_on: string
   /** 實付 TWD */
   amount: number
+  /** 動用人 */
+  spender: string
   note: string
 }
 export type ActualInput = Omit<Actual, 'id'>

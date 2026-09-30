@@ -173,6 +173,7 @@ function normalizeActual(row: Record<string, unknown>): Actual {
     scope: (row.scope ?? '') as Actual['scope'],
     spent_on: String(row.spent_on),
     amount: Number(row.amount),
+    spender: String(row.spender ?? ''),
     note: String(row.note ?? ''),
   }
 }
