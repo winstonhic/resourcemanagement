@@ -122,3 +122,27 @@ describe('plannedInPeriod', () => {
     expect(plannedInPeriod([{ ...monthlyItem, provider: '' }], ['其他'], 32.5, '2026-10-01', '2026-10-31')).toBe(3250)
   })
 })
+
+import { actualsBreakdown } from './cost'
+import type { Actual } from './types'
+
+describe('actualsBreakdown', () => {
+  const acts: Actual[] = [
+    { id: 1, budget_id: 1, scope: 'Azure', spent_on: '2026-10-05', amount: 30000, note: '' },
+    { id: 2, budget_id: 1, scope: 'Azure', spent_on: '2026-11-05', amount: 10000, note: '' },
+    { id: 3, budget_id: 1, scope: 'Claude', spent_on: '2026-12-31', amount: 5000, note: '' },
+    { id: 4, budget_id: 1, scope: '', spent_on: '2026-12-01', amount: 5000, note: '' },
+    { id: 5, budget_id: 2, scope: 'equipment', spent_on: '2027-01-15', amount: 400000, note: '' },
+  ]
+  it('依動用日期落在期間內、按大類加總、大到小、算佔比', () => {
+    const r = actualsBreakdown(acts, '2026-10-01', '2026-12-31')
+    expect(r.map((x) => [x.label, x.total])).toEqual([['Azure', 40000], ['Claude', 5000], ['未指定', 5000]])
+    expect(r[0].share).toBeCloseTo(0.8, 6)
+    expect(r[0].oneTime).toBe(false)
+  })
+  it('設備標 oneTime 用琥珀色', () => {
+    const r = actualsBreakdown(acts, '2027-01-01', '2027-12-31')
+    expect(r).toEqual([{ label: '自建設備', total: 400000, share: 1, oneTime: true, children: [] }])
+  })
+  it('期間內沒有動用回空陣列', () => expect(actualsBreakdown(acts, '2028-01-01', '2028-12-31')).toEqual([]))
+})

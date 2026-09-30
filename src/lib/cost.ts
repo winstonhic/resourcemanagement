@@ -1,4 +1,4 @@
-import { scopeOf, type Billing, type Item, type Kind, type Scope } from './types'
+import { SCOPE_LABEL, scopeOf, type Actual, type Billing, type Item, type Kind, type Scope } from './types'
 
 /** 單筆小計換成 TWD。rate 必須 > 0。 */
 export function subtotalTwd(
@@ -144,4 +144,20 @@ export function plannedInPeriod(items: Item[], scopes: Scope[], rate: number, st
   const months = monthsBetween(start, end)
   const set = new Set(scopes)
   return periodTotals(items.filter((i) => set.has(scopeOf(i))), rate, months, true).total
+}
+
+/** 期間內(依動用日期)的實際動用,按大類加總,大到小;形狀與 providerBreakdown 相同以共用長條圖。 */
+export function actualsBreakdown(actuals: Actual[], start: string, end: string): ProviderShare[] {
+  const m = new Map<string, { total: number; oneTime: boolean }>()
+  for (const a of actuals) {
+    if (a.spent_on < start || a.spent_on > end) continue
+    const label = a.scope ? SCOPE_LABEL[a.scope] : '未指定'
+    const cur = m.get(label) ?? { total: 0, oneTime: a.scope === 'equipment' }
+    cur.total += a.amount
+    m.set(label, cur)
+  }
+  const grand = [...m.values()].reduce((s, v) => s + v.total, 0)
+  return [...m]
+    .map(([label, v]) => ({ label, total: v.total, share: grand > 0 ? v.total / grand : 0, oneTime: v.oneTime, children: [] }))
+    .sort((a, b) => b.total - a.total)
 }

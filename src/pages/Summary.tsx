@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from 'react'
 import BudgetOverview from '../components/BudgetOverview'
 import ShareBars from '../components/ShareBars'
-import { periodTotals, providerBreakdown, totals } from '../lib/cost'
+import { actualsBreakdown, periodTotals, providerBreakdown, totals } from '../lib/cost'
 import { useAuth } from '../lib/auth'
 import { useData } from '../lib/data'
 import { fmtTwd, fmtWan } from '../lib/format'
 import type { PeriodTotals, ProviderShare } from '../lib/cost'
 
 const PERIODS = [
-  { key: 'q4', title: '2026 第四季', sub: '10 月到 12 月,3 個月', months: 3, includeOneTime: false },
-  { key: 'y27', title: '2027 全年', sub: '1 月到 12 月,12 個月;設備第一季購入', months: 12, includeOneTime: true },
+  { key: 'q4', title: '2026 第四季', sub: '10 月到 12 月,3 個月', months: 3, includeOneTime: false, start: '2026-10-01', end: '2026-12-31' },
+  { key: 'y27', title: '2027 全年', sub: '1 月到 12 月,12 個月;設備第一季購入', months: 12, includeOneTime: true, start: '2027-01-01', end: '2027-12-31' },
 ] as const
 
 function PeriodCard({ title, sub, months, t }: { title: string; sub: string; months: number; t: PeriodTotals }) {
@@ -127,7 +127,7 @@ export default function Summary() {
       <BudgetOverview budgets={budgets} actuals={actuals} items={items} rate={rate} />
 
       <section className="where">
-        <h3>錢花在哪裡</h3>
+        <h3>錢預計花在哪裡</h3>
         <div className="where-grid">
           {periods.map((p) => (
             <div key={p.key}>
@@ -135,6 +135,23 @@ export default function Summary() {
               <ShareBars rows={providerBreakdown(items, rate, p.months, p.includeOneTime)} />
             </div>
           ))}
+        </div>
+      </section>
+
+      <section className="where">
+        <h3>錢實際花在哪裡</h3>
+        <p className="hint">依實際動用的日期歸期,按大類加總。</p>
+        <div className="where-grid">
+          {periods.map((p) => {
+            const rows = actualsBreakdown(actuals, p.start, p.end)
+            const total = rows.reduce((s, r) => s + r.total, 0)
+            return (
+              <div key={p.key}>
+                <h4>{p.title}<span className="hint"> 合計 {fmtTwd(total)}</span></h4>
+                {rows.length === 0 ? <p className="empty">這段期間還沒有動用紀錄。</p> : <ShareBars rows={rows} />}
+              </div>
+            )
+          })}
         </div>
       </section>
 
