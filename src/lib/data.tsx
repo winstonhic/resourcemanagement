@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react'
+import { useAuth } from './auth'
 import { supabase } from './supabase'
 import type { Item, ItemInput } from './types'
 
@@ -17,10 +18,12 @@ interface DataState {
 
 const DataContext = createContext<DataState | null>(null)
 
+/** 只在登入後拉資料;登出時清空。 */
 export function DataProvider({ children }: { children: ReactNode }) {
+  const { user } = useAuth()
   const [items, setItems] = useState<Item[]>([])
   const [rate, setRate] = useState<number | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const reload = useCallback(async () => {
@@ -42,8 +45,14 @@ export function DataProvider({ children }: { children: ReactNode }) {
   }, [])
 
   useEffect(() => {
-    void reload()
-  }, [reload])
+    if (user) {
+      void reload()
+    } else {
+      setItems([])
+      setRate(null)
+      setError(null)
+    }
+  }, [user, reload])
 
   const saveItem = async (input: ItemInput, id?: number) => {
     const q = id === undefined

@@ -46,3 +46,49 @@ export function groupByCategory(
     .map(([category, total]) => ({ category, total }))
     .sort((a, b) => b.total - a.total)
 }
+
+export interface PeriodTotals {
+  /** 經常性:每月小計 × 月數 */
+  recurring: number
+  /** 一次性:includeOneTime 為 true 才計入 */
+  oneTime: number
+  total: number
+}
+
+/** 某段期間的總額(TWD)。months = 期間月數;includeOneTime = 一次性採購是否落在這段期間。 */
+export function periodTotals(items: Item[], rate: number, months: number, includeOneTime: boolean): PeriodTotals {
+  let recurring = 0
+  let oneTime = 0
+  for (const it of items) {
+    if (it.billing === 'monthly') recurring += subtotalTwd(it, rate) * months
+    else if (includeOneTime) oneTime += subtotalTwd(it, rate)
+  }
+  return { recurring, oneTime, total: recurring + oneTime }
+}
+
+export interface CategoryShare {
+  category: string
+  total: number
+  /** 佔期間總額的比例 0–1;總額為 0 時為 0 */
+  share: number
+  /** 這個類別是不是一次性採購 */
+  oneTime: boolean
+}
+
+/** 某段期間各類別的金額與佔比,大到小。 */
+export function categoryBreakdown(items: Item[], rate: number, months: number, includeOneTime: boolean): CategoryShare[] {
+  const m = new Map<string, { total: number; oneTime: boolean }>()
+  for (const it of items) {
+    let amount: number
+    if (it.billing === 'monthly') amount = subtotalTwd(it, rate) * months
+    else if (includeOneTime) amount = subtotalTwd(it, rate)
+    else continue
+    const cur = m.get(it.category) ?? { total: 0, oneTime: it.billing === 'one_time' }
+    cur.total += amount
+    m.set(it.category, cur)
+  }
+  const grand = [...m.values()].reduce((s, v) => s + v.total, 0)
+  return [...m]
+    .map(([category, v]) => ({ category, total: v.total, oneTime: v.oneTime, share: grand > 0 ? v.total / grand : 0 }))
+    .sort((a, b) => b.total - a.total)
+}

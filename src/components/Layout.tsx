@@ -1,28 +1,33 @@
-import { Link, NavLink, Outlet } from 'react-router-dom'
+import { NavLink, Outlet } from 'react-router-dom'
 import { useAuth } from '../lib/auth'
 import { useData } from '../lib/data'
+import Login from '../pages/Login'
 
 export default function Layout() {
   const { user, loading: authLoading, signOut } = useAuth()
   const { loading, error, reload } = useData()
 
+  if (authLoading) return <main><p className="empty">載入中…</p></main>
+
+  if (!user) {
+    return (
+      <main className="gate">
+        <Login />
+      </main>
+    )
+  }
+
   return (
     <>
       <header>
         <nav>
-          <NavLink to="/" end>總費用</NavLink>
-          <NavLink to="/cloud">雲端服務</NavLink>
+          <NavLink to="/" end>總覽</NavLink>
+          <NavLink to="/cloud">雲端與訂閱</NavLink>
           <NavLink to="/equipment">設備採購</NavLink>
         </nav>
         <div className="auth">
-          {authLoading ? null : user ? (
-            <>
-              <span className="email">{user.email}</span>
-              <button type="button" onClick={() => void signOut()}>登出</button>
-            </>
-          ) : (
-            <Link to="/login" className="button">登入</Link>
-          )}
+          <span className="email">{user.email}</span>
+          <button type="button" className="quiet" onClick={() => void signOut()}>登出</button>
         </div>
       </header>
       <main>

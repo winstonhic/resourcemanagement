@@ -43,3 +43,36 @@ describe('groupByCategory', () => {
   })
   it('沒有符合的回空陣列', () => expect(groupByCategory([base], 'equipment', 'one_time', 32.5)).toEqual([]))
 })
+
+import { periodTotals, categoryBreakdown } from './cost'
+
+const cloud: Item = { ...base, id: 10, category: 'Azure(澎湖 QA)', unit_price: 100, quantity: 1 } // 3,250 TWD/月
+const seats: Item = { ...base, id: 11, category: 'Claude Code', unit_price: 25, quantity: 4 } // 3,250 TWD/月
+const server: Item = { ...base, id: 12, kind: 'equipment', category: '伺服器', billing: 'one_time', currency: 'TWD', unit_price: 380000, quantity: 1 }
+
+describe('periodTotals', () => {
+  it('3 個月含一次性', () => {
+    expect(periodTotals([cloud, seats, server], 32.5, 3, true)).toEqual({ recurring: 19500, oneTime: 380000, total: 399500 })
+  })
+  it('12 個月不含一次性', () => {
+    expect(periodTotals([cloud, seats, server], 32.5, 12, false)).toEqual({ recurring: 78000, oneTime: 0, total: 78000 })
+  })
+  it('空清單', () => expect(periodTotals([], 32.5, 3, true)).toEqual({ recurring: 0, oneTime: 0, total: 0 }))
+})
+
+describe('categoryBreakdown', () => {
+  it('依類別加總、算佔比、大到小', () => {
+    const r = categoryBreakdown([cloud, seats, server], 32.5, 3, true)
+    expect(r.map((x) => x.category)).toEqual(['伺服器', 'Azure(澎湖 QA)', 'Claude Code'])
+    expect(r[0]).toMatchObject({ total: 380000, oneTime: true })
+    expect(r[1]).toMatchObject({ total: 9750, oneTime: false })
+    expect(r[0].share).toBeCloseTo(380000 / 399500, 6)
+  })
+  it('不含一次性時設備不出現', () => {
+    const r = categoryBreakdown([cloud, seats, server], 32.5, 12, false)
+    expect(r.map((x) => x.category)).toEqual(['Azure(澎湖 QA)', 'Claude Code'])
+  })
+  it('總額 0 時佔比為 0 不是 NaN', () => {
+    expect(categoryBreakdown([{ ...cloud, unit_price: 0 }], 32.5, 3, true)[0].share).toBe(0)
+  })
+})
