@@ -3,7 +3,7 @@ import { subtotalTwd, totals, groupByCategory } from './cost'
 import type { Item } from './types'
 
 const base: Item = {
-  id: 1, kind: 'cloud', category: 'AWS', name: 'vm', spec: '',
+  id: 1, kind: 'cloud', provider: 'AWS', category: 'AWS', name: 'vm', spec: '',
   quantity: 2, unit_price: 100, currency: 'USD', billing: 'monthly', note: '',
 }
 
@@ -74,5 +74,27 @@ describe('categoryBreakdown', () => {
   })
   it('總額 0 時佔比為 0 不是 NaN', () => {
     expect(categoryBreakdown([{ ...cloud, unit_price: 0 }], 32.5, 3, true)[0].share).toBe(0)
+  })
+})
+
+import { providerBreakdown } from './cost'
+
+describe('providerBreakdown', () => {
+  const az1: Item = { ...base, id: 20, provider: 'Azure', category: '澎湖 QA', unit_price: 100, quantity: 1 } // 3,250/月
+  const az2: Item = { ...base, id: 21, provider: 'Azure', category: '金門 QA', unit_price: 200, quantity: 1 } // 6,500/月
+  const cl: Item = { ...base, id: 22, provider: 'Claude', category: 'Claude Code', unit_price: 25, quantity: 4 } // 3,250/月
+  const srv: Item = { ...base, id: 23, kind: 'equipment', provider: '', category: '自建伺服器', billing: 'one_time', currency: 'TWD', unit_price: 380000, quantity: 1 }
+
+  it('雲端依大類、設備依類別;大到小;子項照小類', () => {
+    const r = providerBreakdown([az1, az2, cl, srv], 32.5, 12, true)
+    expect(r.map((x) => x.label)).toEqual(['自建伺服器', 'Azure', 'Claude'])
+    expect(r[1]).toMatchObject({ total: 117000, oneTime: false })
+    expect(r[1].children).toEqual([{ category: '金門 QA', total: 78000 }, { category: '澎湖 QA', total: 39000 }])
+    expect(r[0].children).toEqual([])
+    expect(r[1].share).toBeCloseTo(117000 / (117000 + 39000 + 380000), 6)
+  })
+  it('單一小類的大類不列子項', () => {
+    const r = providerBreakdown([cl], 32.5, 1, false)
+    expect(r[0].children).toEqual([])
   })
 })

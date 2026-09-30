@@ -17,6 +17,21 @@ export default function ItemTable({ items, rate, canEdit, onEdit, onDelete }: Pr
 
   if (items.length === 0) return <p className="empty">目前沒有項目。</p>
 
+  // 雲端依大類分組;設備不分組
+  const groups: { label: string | null; rows: Item[] }[] = []
+  if (items[0].kind === 'cloud') {
+    const m = new Map<string, Item[]>()
+    for (const it of items) {
+      const k = it.provider || '其他'
+      m.set(k, [...(m.get(k) ?? []), it])
+    }
+    for (const [label, rows] of m) groups.push({ label, rows })
+    groups.sort((a, b) => b.rows.reduce((s, i) => s + (sub(i) ?? 0), 0) - a.rows.reduce((s, i) => s + (sub(i) ?? 0), 0))
+  } else {
+    groups.push({ label: null, rows: items })
+  }
+  const cols = canEdit ? 10 : 9
+
   return (
     <div className="table-wrap">
       <table>
@@ -34,8 +49,16 @@ export default function ItemTable({ items, rate, canEdit, onEdit, onDelete }: Pr
             {canEdit && <th>操作</th>}
           </tr>
         </thead>
-        <tbody>
-          {items.map((it) => {
+        {groups.map((g) => (
+        <tbody key={g.label ?? '_'}>
+          {g.label !== null && (
+            <tr className="group-head">
+              <td colSpan={7}>{g.label}</td>
+              <td className="num">{rate === null ? '—' : fmtTwd(g.rows.reduce((s, i) => s + (sub(i) ?? 0), 0))}</td>
+              <td colSpan={cols - 8} />
+            </tr>
+          )}
+          {g.rows.map((it) => {
             const s = sub(it)
             return (
               <tr key={it.id}>
@@ -58,6 +81,7 @@ export default function ItemTable({ items, rate, canEdit, onEdit, onDelete }: Pr
             )
           })}
         </tbody>
+        ))}
         <tfoot>
           <tr>
             <td colSpan={7}>合計 每月</td>

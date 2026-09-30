@@ -1,4 +1,4 @@
-import type { Billing, Currency, ItemInput, Kind } from './types'
+import { PROVIDERS, type Billing, type Currency, type ItemInput, type Kind, type Provider } from './types'
 
 export type ValidateResult =
   | { ok: true; value: ItemInput }
@@ -39,6 +39,13 @@ export function validateItem(raw: Record<string, string | undefined>): ValidateR
   const billing = raw.billing as Billing
   if (!BILLINGS.includes(billing)) errors.push('計費方式必須是每月或一次性')
 
+  let provider: Provider = ''
+  if (kind === 'cloud') {
+    const p = (raw.provider ?? '').trim() as Provider
+    if (!PROVIDERS.includes(p as Exclude<Provider, ''>)) errors.push('雲端項目必須選大類(Azure / AWS / Claude / 其他)')
+    else provider = p
+  }
+
   const quantity = toNonNegativeNumber(raw.quantity, '數量', errors)
   const unit_price = toNonNegativeNumber(raw.unit_price, '單價', errors)
 
@@ -47,6 +54,7 @@ export function validateItem(raw: Record<string, string | undefined>): ValidateR
     ok: true,
     value: {
       kind,
+      provider,
       category: (raw.category ?? '').trim(),
       name,
       spec: (raw.spec ?? '').trim(),

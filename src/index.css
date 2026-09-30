@@ -144,6 +144,22 @@ input.inline { width: 90px; display: inline-block; margin: 0 6px; padding: 3px 8
 .group table { background: var(--paper); }
 .group h4 { margin-bottom: 6px; }
 
+tr.group-head td { background: #f3f6f8; font-weight: 600; color: var(--ink); }
+td.indent { padding-left: 28px; color: var(--ink-2); }
+.share-bars .children {
+  grid-column: 1 / -1;
+  list-style: none;
+  margin: 2px 0 2px;
+  padding: 0 0 0 14px;
+  border-left: 2px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+  color: var(--ink-2);
+}
+.share-bars .children li { display: flex; justify-content: space-between; gap: 12px; }
+
 /* ---------- 表格 ---------- */
 .page-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
 .table-wrap { overflow-x: auto; background: var(--paper); border: 1px solid var(--line); }
@@ -214,6 +230,7 @@ dialog::backdrop { background: rgba(20, 33, 61, .45); }
   .share-bars .cat { grid-area: cat; color: var(--ink); }
   .share-bars .val { grid-area: val; font-size: 14px; }
   .share-bars .track { grid-area: track; height: 10px; }
+  .share-bars .children { grid-column: 1 / -1; }
   .basis ul { padding-left: 16px; }
 }
 @media (prefers-reduced-motion: no-preference) {

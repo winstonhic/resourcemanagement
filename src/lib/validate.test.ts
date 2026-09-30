@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { validateItem } from './validate'
 
 const good = {
-  kind: 'cloud', category: 'AWS', name: 'm6i.xlarge', spec: '4 vCPU', quantity: '2',
+  kind: 'cloud', provider: 'AWS', category: 'AWS', name: 'm6i.xlarge', spec: '4 vCPU', quantity: '2',
   unit_price: '150', currency: 'USD', billing: 'monthly', note: '',
 }
 
@@ -35,5 +35,21 @@ describe('validateItem', () => {
   it('文字欄位 trim', () => {
     const r = validateItem({ ...good, name: '  x  ', category: ' AWS ' })
     if (r.ok) expect(r.value).toMatchObject({ name: 'x', category: 'AWS' })
+  })
+})
+
+describe('validateItem provider', () => {
+  const cloud = { kind: 'cloud', provider: 'Azure', category: '澎湖 QA', name: 'x', spec: '', quantity: '1', unit_price: '10', currency: 'USD', billing: 'monthly', note: '' }
+  it('雲端必須有大類', () => {
+    expect(validateItem({ ...cloud, provider: '' }).ok).toBe(false)
+    const r = validateItem(cloud)
+    expect(r.ok).toBe(true)
+    if (r.ok) expect(r.value.provider).toBe('Azure')
+  })
+  it('大類亂值擋掉', () => expect(validateItem({ ...cloud, provider: 'GCP' }).ok).toBe(false))
+  it('設備大類一律空字串', () => {
+    const r = validateItem({ ...cloud, kind: 'equipment', provider: 'Azure', currency: 'TWD', billing: 'one_time' })
+    expect(r.ok).toBe(true)
+    if (r.ok) expect(r.value.provider).toBe('')
   })
 })

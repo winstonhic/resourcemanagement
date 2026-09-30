@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { validateItem } from '../lib/validate'
-import type { Item, ItemInput, Kind } from '../lib/types'
+import { PROVIDERS, type Item, type ItemInput, type Kind } from '../lib/types'
 
 const CATEGORY_OPTIONS: Record<Kind, string[]> = {
-  cloud: ['AWS', 'Azure', 'GCP', 'GitHub', 'Claude Code', 'Codex', '其他'],
+  cloud: ['澎湖 QA', '金門 QA', '科技執法 QA', '共用', 'Claude Code', 'Codex', 'GitHub', '其他'],
   equipment: ['自建伺服器', '自建儲存', 'GPU', '網路', '其他'],
 }
 
@@ -17,10 +17,11 @@ interface Props {
   onSave(input: ItemInput, id?: number): Promise<string | null>
 }
 
-type Form = Record<'category' | 'name' | 'spec' | 'quantity' | 'unit_price' | 'currency' | 'billing' | 'note', string>
+type Form = Record<'provider' | 'category' | 'name' | 'spec' | 'quantity' | 'unit_price' | 'currency' | 'billing' | 'note', string>
 
 function emptyForm(kind: Kind): Form {
   return {
+    provider: kind === 'cloud' ? 'Azure' : '',
     category: '', name: '', spec: '', quantity: '1', unit_price: '',
     currency: kind === 'cloud' ? 'USD' : 'TWD',
     billing: kind === 'cloud' ? 'monthly' : 'one_time',
@@ -30,6 +31,7 @@ function emptyForm(kind: Kind): Form {
 
 function fromItem(it: Item): Form {
   return {
+    provider: it.provider,
     category: it.category, name: it.name, spec: it.spec,
     quantity: String(it.quantity), unit_price: String(it.unit_price),
     currency: it.currency, billing: it.billing, note: it.note,
@@ -74,8 +76,16 @@ export default function ItemForm({ kind, editing, open, onClose, onSave }: Props
     <dialog ref={ref} onClose={onClose}>
       <form onSubmit={submit} className="item-form">
         <h3>{editing ? '編輯項目' : '新增項目'}</h3>
+        {kind === 'cloud' && (
+          <label>
+            大類 *
+            <select value={form.provider} onChange={set('provider')}>
+              {PROVIDERS.map((p) => <option key={p} value={p}>{p}</option>)}
+            </select>
+          </label>
+        )}
         <label>
-          類別
+          {kind === 'cloud' ? '小類(站台 / 用途)' : '類別'}
           <input list={listId} value={form.category} onChange={set('category')} />
           <datalist id={listId}>
             {CATEGORY_OPTIONS[kind].map((c) => <option key={c} value={c} />)}

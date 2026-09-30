@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import ShareBars from '../components/ShareBars'
-import { categoryBreakdown, groupByCategory, periodTotals, totals } from '../lib/cost'
+import { periodTotals, providerBreakdown, totals } from '../lib/cost'
 import { useAuth } from '../lib/auth'
 import { useData } from '../lib/data'
 import { fmtTwd, fmtWan } from '../lib/format'
-import type { CategoryTotal, PeriodTotals } from '../lib/cost'
+import type { PeriodTotals, ProviderShare } from '../lib/cost'
 
 const PERIODS = [
   { key: 'q4', title: '2026 第四季', sub: '10 月到 12 月,3 個月', months: 3, includeOneTime: false },
@@ -41,19 +41,27 @@ function PeriodCard({ title, sub, months, t }: { title: string; sub: string; mon
   )
 }
 
-function GroupTable({ title, rows, unit }: { title: string; rows: CategoryTotal[]; unit: string }) {
+function GroupTable({ title, rows, unit }: { title: string; rows: ProviderShare[]; unit: string }) {
   if (rows.length === 0) return null
   return (
     <div className="group">
       <h4>{title}</h4>
       <table>
-        <thead><tr><th>類別</th><th className="num">{unit}</th></tr></thead>
+        <thead><tr><th>大類 / 小類</th><th className="num">{unit}</th></tr></thead>
         <tbody>
           {rows.map((r) => (
-            <tr key={r.category || '(未分類)'}>
-              <td>{r.category || '(未分類)'}</td>
-              <td className="num">{fmtTwd(r.total)}</td>
-            </tr>
+            <React.Fragment key={r.label}>
+              <tr className="group-head">
+                <td>{r.label}</td>
+                <td className="num">{fmtTwd(r.total)}</td>
+              </tr>
+              {r.children.map((c) => (
+                <tr key={c.category}>
+                  <td className="indent">{c.category || '(未分類)'}</td>
+                  <td className="num">{fmtTwd(c.total)}</td>
+                </tr>
+              ))}
+            </React.Fragment>
           ))}
         </tbody>
       </table>
@@ -121,7 +129,7 @@ export default function Summary() {
           {periods.map((p) => (
             <div key={p.key}>
               <h4>{p.title}</h4>
-              <ShareBars rows={categoryBreakdown(items, rate, p.months, p.includeOneTime)} />
+              <ShareBars rows={providerBreakdown(items, rate, p.months, p.includeOneTime)} />
             </div>
           ))}
         </div>
@@ -145,8 +153,8 @@ export default function Summary() {
         <details>
           <summary>各類別小計</summary>
           <div className="groups">
-            <GroupTable title="雲端與訂閱,每月" rows={groupByCategory(items, 'cloud', 'monthly', rate)} unit="每月 (TWD)" />
-            <GroupTable title="設備採購,一次性" rows={groupByCategory(items, 'equipment', 'one_time', rate)} unit="一次性 (TWD)" />
+            <GroupTable title="雲端與訂閱,每月" rows={providerBreakdown(items.filter((i) => i.kind === 'cloud'), rate, 1, false)} unit="每月 (TWD)" />
+            <GroupTable title="設備採購,一次性" rows={providerBreakdown(items.filter((i) => i.kind === 'equipment'), rate, 0, true)} unit="一次性 (TWD)" />
           </div>
         </details>
       </section>

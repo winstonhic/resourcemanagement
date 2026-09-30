@@ -92,3 +92,41 @@ export function categoryBreakdown(items: Item[], rate: number, months: number, i
     .map(([category, v]) => ({ category, total: v.total, oneTime: v.oneTime, share: grand > 0 ? v.total / grand : 0 }))
     .sort((a, b) => b.total - a.total)
 }
+
+export interface ProviderShare {
+  /** 雲端 = 大類(供應商);設備 = 類別 */
+  label: string
+  total: number
+  share: number
+  oneTime: boolean
+  /** 大類底下的小類金額(大到小);只有一個小類或設備時為空 */
+  children: { category: string; total: number }[]
+}
+
+/** 高層版分組:雲端依大類、設備依類別;每組附小類明細。 */
+export function providerBreakdown(items: Item[], rate: number, months: number, includeOneTime: boolean): ProviderShare[] {
+  const groups = new Map<string, { total: number; oneTime: boolean; sub: Map<string, number> }>()
+  for (const it of items) {
+    let amount: number
+    if (it.billing === 'monthly') amount = subtotalTwd(it, rate) * months
+    else if (includeOneTime) amount = subtotalTwd(it, rate)
+    else continue
+    const label = it.kind === 'cloud' ? (it.provider || '其他') : it.category
+    const g = groups.get(label) ?? { total: 0, oneTime: it.billing === 'one_time', sub: new Map() }
+    g.total += amount
+    if (it.kind === 'cloud') g.sub.set(it.category, (g.sub.get(it.category) ?? 0) + amount)
+    groups.set(label, g)
+  }
+  const grand = [...groups.values()].reduce((s, g) => s + g.total, 0)
+  return [...groups]
+    .map(([label, g]) => ({
+      label,
+      total: g.total,
+      oneTime: g.oneTime,
+      share: grand > 0 ? g.total / grand : 0,
+      children: g.sub.size > 1
+        ? [...g.sub].map(([category, total]) => ({ category, total })).sort((a, b) => b.total - a.total)
+        : [],
+    }))
+    .sort((a, b) => b.total - a.total)
+}

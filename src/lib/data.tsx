@@ -90,6 +90,7 @@ function normalize(row: Record<string, unknown>): Item {
   return {
     id: Number(row.id),
     kind: row.kind as Item['kind'],
+    provider: (row.provider ?? '') as Item['provider'],
     category: String(row.category ?? ''),
     name: String(row.name ?? ''),
     spec: String(row.spec ?? ''),
