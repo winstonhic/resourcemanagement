@@ -42,7 +42,7 @@ export function validateItem(raw: Record<string, string | undefined>): ValidateR
   let provider: Provider = ''
   if (kind === 'cloud') {
     const p = (raw.provider ?? '').trim() as Provider
-    if (!PROVIDERS.includes(p as Exclude<Provider, ''>)) errors.push('雲端項目必須選大類(Azure / AWS / Claude / 其他)')
+    if (!PROVIDERS.includes(p as Exclude<Provider, ''>)) errors.push('雲端項目必須選大類(AWS / Azure / Claude / OpenAI / 其他)')
     else provider = p
   }
 

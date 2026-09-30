@@ -1,8 +1,8 @@
 export type Kind = 'cloud' | 'equipment'
 export type Currency = 'USD' | 'TWD'
 export type Billing = 'monthly' | 'one_time'
-export type Provider = '' | 'Azure' | 'AWS' | 'Claude' | '其他'
-export const PROVIDERS: Exclude<Provider, ''>[] = ['Azure', 'AWS', 'Claude', '其他']
+export type Provider = '' | 'Azure' | 'AWS' | 'Claude' | 'OpenAI' | '其他'
+export const PROVIDERS: Exclude<Provider, ''>[] = ['AWS', 'Azure', 'Claude', 'OpenAI', '其他']
 
 export interface Item {
   id: number
@@ -36,8 +36,8 @@ export interface Budget {
 export type BudgetInput = Omit<Budget, 'id'>
 
 export type Scope = Exclude<Provider, ''> | 'equipment'
-export const SCOPES: Scope[] = ['Azure', 'AWS', 'Claude', '其他', 'equipment']
-export const SCOPE_LABEL: Record<Scope, string> = { Azure: 'Azure', AWS: 'AWS', Claude: 'Claude', 其他: '其他雲端', equipment: '自建設備' }
+export const SCOPES: Scope[] = ['AWS', 'Azure', 'Claude', 'OpenAI', '其他', 'equipment']
+export const SCOPE_LABEL: Record<Scope, string> = { AWS: 'AWS', Azure: 'Azure', Claude: 'Claude', OpenAI: 'OpenAI', 其他: '其他雲端', equipment: '自建設備' }
 /** 項目屬於哪個大類 */
 export function scopeOf(it: Pick<Item, 'kind' | 'provider'>): Scope {
   return it.kind === 'cloud' ? ((it.provider || '其他') as Scope) : 'equipment'
