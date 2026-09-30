@@ -4,7 +4,7 @@ import type { Item, ItemInput, Kind } from '../lib/types'
 
 const CATEGORY_OPTIONS: Record<Kind, string[]> = {
   cloud: ['AWS', 'Azure', 'GCP', 'GitHub', 'Claude Code', 'Codex', '其他'],
-  equipment: ['伺服器', 'GPU', '儲存', '網路', '其他'],
+  equipment: ['自建伺服器', '自建儲存', 'GPU', '網路', '其他'],
 }
 
 interface Props {
