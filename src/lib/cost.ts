@@ -1,4 +1,4 @@
-import type { Billing, Item, Kind } from './types'
+import { scopeOf, type Billing, type Item, type Kind, type Scope } from './types'
 
 /** 單筆小計換成 TWD。rate 必須 > 0。 */
 export function subtotalTwd(
@@ -139,9 +139,9 @@ export function monthsBetween(start: string, end: string): number {
   return n > 0 ? n : 0
 }
 
-/** 某筆預算勾選項目在期間內的計畫金額(TWD):月費 × 月數 + 一次性。 */
-export function plannedInPeriod(items: Item[], itemIds: number[], rate: number, start: string, end: string): number {
+/** 某筆預算涵蓋的大類在期間內的計畫金額(TWD):月費 × 月數 + 一次性。 */
+export function plannedInPeriod(items: Item[], scopes: Scope[], rate: number, start: string, end: string): number {
   const months = monthsBetween(start, end)
-  const ids = new Set(itemIds)
-  return periodTotals(items.filter((i) => ids.has(i.id)), rate, months, true).total
+  const set = new Set(scopes)
+  return periodTotals(items.filter((i) => set.has(scopeOf(i))), rate, months, true).total
 }

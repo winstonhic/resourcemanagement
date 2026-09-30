@@ -1,9 +1,8 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
-import type { Actual, ActualInput, Budget, Item } from '../lib/types'
+import { SCOPES, SCOPE_LABEL, type Actual, type ActualInput, type Budget, type Scope } from '../lib/types'
 
 interface Props {
   budgets: Budget[]
-  items: Item[]
   defaultBudgetId: number | null
   editing?: Actual
   open: boolean
@@ -11,19 +10,19 @@ interface Props {
   onSave(input: ActualInput, id?: number): Promise<string | null>
 }
 
-interface Form { budget_id: string; item_id: string; spent_on: string; amount: string; note: string }
+interface Form { budget_id: string; scope: string; spent_on: string; amount: string; note: string }
 
-export default function ActualForm({ budgets, items, defaultBudgetId, editing, open, onClose, onSave }: Props) {
+export default function ActualForm({ budgets, defaultBudgetId, editing, open, onClose, onSave }: Props) {
   const ref = useRef<HTMLDialogElement>(null)
-  const [form, setForm] = useState<Form>({ budget_id: '', item_id: '', spent_on: '', amount: '', note: '' })
+  const [form, setForm] = useState<Form>({ budget_id: '', scope: '', spent_on: '', amount: '', note: '' })
   const [errors, setErrors] = useState<string[]>([])
   const [busy, setBusy] = useState(false)
 
   useEffect(() => {
     if (open) {
       setForm(editing
-        ? { budget_id: String(editing.budget_id), item_id: editing.item_id === null ? '' : String(editing.item_id), spent_on: editing.spent_on, amount: String(editing.amount), note: editing.note }
-        : { budget_id: defaultBudgetId === null ? '' : String(defaultBudgetId), item_id: '', spent_on: new Date().toISOString().slice(0, 10), amount: '', note: '' })
+        ? { budget_id: String(editing.budget_id), scope: editing.scope, spent_on: editing.spent_on, amount: String(editing.amount), note: editing.note }
+        : { budget_id: defaultBudgetId === null ? '' : String(defaultBudgetId), scope: '', spent_on: new Date().toISOString().slice(0, 10), amount: '', note: '' })
       setErrors([])
       ref.current?.showModal()
     } else {
@@ -33,9 +32,9 @@ export default function ActualForm({ budgets, items, defaultBudgetId, editing, o
 
   const set = (k: keyof Form) => (e: { target: { value: string } }) => setForm((f) => ({ ...f, [k]: e.target.value }))
 
-  // 只列出該預算勾選的項目;沒勾任何項目就列全部
+  // 只列出該預算涵蓋的大類;沒勾任何大類就列全部
   const budget = budgets.find((b) => String(b.id) === form.budget_id)
-  const pickable = budget && budget.item_ids.length > 0 ? items.filter((i) => budget.item_ids.includes(i.id)) : items
+  const pickable: Scope[] = budget && budget.scopes.length > 0 ? budget.scopes : SCOPES
 
   const submit = async (e: FormEvent) => {
     e.preventDefault()
@@ -51,7 +50,7 @@ export default function ActualForm({ budgets, items, defaultBudgetId, editing, o
     setBusy(true)
     const err = await onSave({
       budget_id: Number(form.budget_id),
-      item_id: form.item_id === '' ? null : Number(form.item_id),
+      scope: form.scope as Actual['scope'],
       spent_on: form.spent_on,
       amount,
       note: form.note.trim(),
@@ -73,10 +72,10 @@ export default function ActualForm({ budgets, items, defaultBudgetId, editing, o
           </select>
         </label>
         <label>
-          項目(選填)
-          <select value={form.item_id} onChange={set('item_id')}>
+          大類(選填)
+          <select value={form.scope} onChange={set('scope')}>
             <option value="">不指定</option>
-            {pickable.map((i) => <option key={i.id} value={i.id}>{i.kind === 'cloud' ? `${i.provider} / ` : ''}{i.category} — {i.name}</option>)}
+            {pickable.map((sc) => <option key={sc} value={sc}>{SCOPE_LABEL[sc]}</option>)}
           </select>
         </label>
         <div className="row">

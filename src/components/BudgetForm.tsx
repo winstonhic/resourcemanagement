@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { subtotalTwd } from '../lib/cost'
-import { BILLING_LABEL, fmtTwd } from '../lib/format'
-import type { Budget, BudgetInput, Item } from '../lib/types'
+import { fmtTwd } from '../lib/format'
+import { SCOPES, SCOPE_LABEL, scopeOf, type Budget, type BudgetInput, type Item, type Scope } from '../lib/types'
 
 interface Props {
   items: Item[]
@@ -12,11 +12,11 @@ interface Props {
   onSave(input: BudgetInput, id?: number): Promise<string | null>
 }
 
-interface Form { name: string; amount: string; start_date: string; end_date: string; note: string; item_ids: number[] }
+interface Form { name: string; amount: string; start_date: string; end_date: string; note: string; scopes: Scope[] }
 
 function empty(): Form {
   const y = new Date().getFullYear()
-  return { name: '', amount: '', start_date: `${y}-01-01`, end_date: `${y}-12-31`, note: '', item_ids: [] }
+  return { name: '', amount: '', start_date: `${y}-01-01`, end_date: `${y}-12-31`, note: '', scopes: [] }
 }
 
 export default function BudgetForm({ items, rate, editing, open, onClose, onSave }: Props) {
@@ -28,7 +28,7 @@ export default function BudgetForm({ items, rate, editing, open, onClose, onSave
   useEffect(() => {
     if (open) {
       setForm(editing
-        ? { name: editing.name, amount: String(editing.amount), start_date: editing.start_date, end_date: editing.end_date, note: editing.note, item_ids: editing.item_ids }
+        ? { name: editing.name, amount: String(editing.amount), start_date: editing.start_date, end_date: editing.end_date, note: editing.note, scopes: editing.scopes }
         : empty())
       setErrors([])
       ref.current?.showModal()
@@ -38,9 +38,20 @@ export default function BudgetForm({ items, rate, editing, open, onClose, onSave
   }, [open, editing])
 
   const set = (k: keyof Form) => (e: { target: { value: string } }) => setForm((f) => ({ ...f, [k]: e.target.value }))
-  const toggle = (id: number) => setForm((f) => ({
-    ...f, item_ids: f.item_ids.includes(id) ? f.item_ids.filter((x) => x !== id) : [...f.item_ids, id],
+  const toggle = (sc: Scope) => setForm((f) => ({
+    ...f, scopes: f.scopes.includes(sc) ? f.scopes.filter((x) => x !== sc) : [...f.scopes, sc],
   }))
+  // 每個大類目前的每月 / 一次性小計,讓人勾的時候看得到量級
+  const scopeSummary = (sc: Scope) => {
+    const rows = items.filter((i) => scopeOf(i) === sc)
+    if (rows.length === 0 || rate === null) return rows.length === 0 ? '目前沒有項目' : ''
+    const monthly = rows.filter((i) => i.billing === 'monthly').reduce((s, i) => s + subtotalTwd(i, rate), 0)
+    const once = rows.filter((i) => i.billing === 'one_time').reduce((s, i) => s + subtotalTwd(i, rate), 0)
+    const parts = []
+    if (monthly > 0) parts.push(`${fmtTwd(monthly)} 每月`)
+    if (once > 0) parts.push(`${fmtTwd(once)} 一次性`)
+    return `${rows.length} 筆,${parts.join(',') || 'NT$ 0'}`
+  }
 
   const submit = async (e: FormEvent) => {
     e.preventDefault()
@@ -56,14 +67,14 @@ export default function BudgetForm({ items, rate, editing, open, onClose, onSave
       return
     }
     setBusy(true)
-    const err = await onSave({ name, amount, start_date: form.start_date, end_date: form.end_date, note: form.note.trim(), item_ids: form.item_ids }, editing?.id)
+    const err = await onSave({ name, amount, start_date: form.start_date, end_date: form.end_date, note: form.note.trim(), scopes: form.scopes }, editing?.id)
     setBusy(false)
     if (err) setErrors([err])
     else onClose()
   }
 
   return (
-    <dialog ref={ref} onClose={onClose} className="wide">
+    <dialog ref={ref} onClose={onClose}>
       <form onSubmit={submit} className="item-form">
         <h3>{editing ? '編輯預算' : '新增預算'}</h3>
         <label>
@@ -88,13 +99,12 @@ export default function BudgetForm({ items, rate, editing, open, onClose, onSave
           </label>
         </div>
         <fieldset className="pick">
-          <legend>預計動用在哪些項目</legend>
-          {items.length === 0 && <p className="hint">還沒有項目。</p>}
-          {items.map((it) => (
-            <label key={it.id} className="check">
-              <input type="checkbox" checked={form.item_ids.includes(it.id)} onChange={() => toggle(it.id)} />
-              <span className="name">{it.kind === 'cloud' ? `${it.provider} / ` : ''}{it.category} — {it.name}</span>
-              <span className="amt">{rate === null ? '' : fmtTwd(subtotalTwd(it, rate))} {BILLING_LABEL[it.billing]}</span>
+          <legend>預計動用在哪些大類</legend>
+          {SCOPES.map((sc) => (
+            <label key={sc} className="check">
+              <input type="checkbox" checked={form.scopes.includes(sc)} onChange={() => toggle(sc)} />
+              <span className="name">{SCOPE_LABEL[sc]}</span>
+              <span className="amt">{scopeSummary(sc)}</span>
             </label>
           ))}
         </fieldset>

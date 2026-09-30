@@ -30,15 +30,24 @@ export interface Budget {
   start_date: string
   end_date: string
   note: string
-  /** 預計動用的項目 id */
-  item_ids: number[]
+  /** 預計動用的大類:Azure / AWS / Claude / 其他 / equipment(自建設備) */
+  scopes: Scope[]
 }
 export type BudgetInput = Omit<Budget, 'id'>
+
+export type Scope = Exclude<Provider, ''> | 'equipment'
+export const SCOPES: Scope[] = ['Azure', 'AWS', 'Claude', '其他', 'equipment']
+export const SCOPE_LABEL: Record<Scope, string> = { Azure: 'Azure', AWS: 'AWS', Claude: 'Claude', 其他: '其他雲端', equipment: '自建設備' }
+/** 項目屬於哪個大類 */
+export function scopeOf(it: Pick<Item, 'kind' | 'provider'>): Scope {
+  return it.kind === 'cloud' ? ((it.provider || '其他') as Scope) : 'equipment'
+}
 
 export interface Actual {
   id: number
   budget_id: number
-  item_id: number | null
+  /** 對應大類;'' = 未指定 */
+  scope: Scope | ''
   /** YYYY-MM-DD */
   spent_on: string
   /** 實付 TWD */

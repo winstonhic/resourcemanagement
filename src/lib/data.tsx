@@ -37,28 +37,21 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const reload = useCallback(async () => {
     setLoading(true)
     setError(null)
-    const [itemsRes, rateRes, budgetsRes, linksRes, actualsRes] = await Promise.all([
+    const [itemsRes, rateRes, budgetsRes, actualsRes] = await Promise.all([
       supabase.from('items').select('*').order('id'),
       supabase.from('settings').select('value').eq('key', 'usd_twd_rate').maybeSingle(),
       supabase.from('budgets').select('*').order('start_date', { ascending: false }),
-      supabase.from('budget_items').select('budget_id,item_id'),
       supabase.from('actuals').select('*').order('spent_on', { ascending: false }).order('id', { ascending: false }),
     ])
     const failed = [
-      ['項目', itemsRes.error], ['匯率', rateRes.error], ['預算', budgetsRes.error],
-      ['預算項目', linksRes.error], ['實際動用', actualsRes.error],
+      ['項目', itemsRes.error], ['匯率', rateRes.error], ['預算', budgetsRes.error], ['實際動用', actualsRes.error],
     ].find(([, e]) => e) as [string, { message: string }] | undefined
     if (failed) {
       setError(`讀取${failed[0]}失敗:${failed[1].message}`)
     } else {
       setItems((itemsRes.data ?? []).map(normalize))
       setRate(rateRes.data ? Number(rateRes.data.value) : null)
-      const links = new Map<number, number[]>()
-      for (const l of linksRes.data ?? []) {
-        const b = Number(l.budget_id)
-        links.set(b, [...(links.get(b) ?? []), Number(l.item_id)])
-      }
-      setBudgets((budgetsRes.data ?? []).map((r) => normalizeBudget(r, links.get(Number(r.id)) ?? [])))
+      setBudgets((budgetsRes.data ?? []).map(normalizeBudget))
       setActuals((actualsRes.data ?? []).map(normalizeActual))
     }
     setLoading(false)
@@ -101,22 +94,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
   }
 
   const saveBudget = async (input: BudgetInput, id?: number) => {
-    const { item_ids, ...row } = input
-    let budgetId = id
-    if (budgetId === undefined) {
-      const { data, error } = await supabase.from('budgets').insert(row).select('id').single()
-      if (error) return `儲存預算失敗:${error.message}`
-      budgetId = Number(data.id)
-    } else {
-      const { error } = await supabase.from('budgets').update(row).eq('id', budgetId)
-      if (error) return `儲存預算失敗:${error.message}`
-      const del = await supabase.from('budget_items').delete().eq('budget_id', budgetId)
-      if (del.error) return `更新預算項目失敗:${del.error.message}`
-    }
-    if (item_ids.length > 0) {
-      const { error } = await supabase.from('budget_items').insert(item_ids.map((item_id) => ({ budget_id: budgetId, item_id })))
-      if (error) return `更新預算項目失敗:${error.message}`
-    }
+    const q = id === undefined
+      ? supabase.from('budgets').insert(input)
+      : supabase.from('budgets').update(input).eq('id', id)
+    const { error } = await q
+    if (error) return `儲存預算失敗:${error.message}`
     await reload()
     return null
   }
@@ -172,7 +154,7 @@ function normalize(row: Record<string, unknown>): Item {
   }
 }
 
-function normalizeBudget(row: Record<string, unknown>, item_ids: number[]): Budget {
+function normalizeBudget(row: Record<string, unknown>): Budget {
   return {
     id: Number(row.id),
     name: String(row.name ?? ''),
@@ -180,7 +162,7 @@ function normalizeBudget(row: Record<string, unknown>, item_ids: number[]): Budg
     start_date: String(row.start_date),
     end_date: String(row.end_date),
     note: String(row.note ?? ''),
-    item_ids,
+    scopes: (Array.isArray(row.scopes) ? row.scopes : []) as Budget['scopes'],
   }
 }
 
@@ -188,7 +170,7 @@ function normalizeActual(row: Record<string, unknown>): Actual {
   return {
     id: Number(row.id),
     budget_id: Number(row.budget_id),
-    item_id: row.item_id === null || row.item_id === undefined ? null : Number(row.item_id),
+    scope: (row.scope ?? '') as Actual['scope'],
     spent_on: String(row.spent_on),
     amount: Number(row.amount),
     note: String(row.note ?? ''),

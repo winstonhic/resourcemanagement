@@ -2,10 +2,10 @@ import { useEffect, useState } from 'react'
 import ActualForm from '../components/ActualForm'
 import { useData } from '../lib/data'
 import { fmtTwd } from '../lib/format'
-import type { Actual } from '../lib/types'
+import { SCOPE_LABEL, type Actual } from '../lib/types'
 
 export default function Actuals() {
-  const { items, budgets, actuals, saveActual, deleteActual } = useData()
+  const { budgets, actuals, saveActual, deleteActual } = useData()
   const [budgetId, setBudgetId] = useState<number | null>(null)
   const [open, setOpen] = useState(false)
   const [editing, setEditing] = useState<Actual | undefined>()
@@ -19,10 +19,6 @@ export default function Actuals() {
   const budget = budgets.find((b) => b.id === budgetId)
   const rows = actuals.filter((a) => a.budget_id === budgetId)
   const spent = rows.reduce((s, a) => s + a.amount, 0)
-  const itemName = (id: number | null) => {
-    const it = items.find((i) => i.id === id)
-    return it ? `${it.kind === 'cloud' ? `${it.provider} / ` : ''}${it.category} — ${it.name}` : ''
-  }
 
   const onDelete = async (a: Actual) => {
     if (!confirm(`確定刪除 ${a.spent_on} 的 ${fmtTwd(a.amount)}?`)) return
@@ -64,13 +60,13 @@ export default function Actuals() {
         <div className="table-wrap">
           <table className="actuals">
             <thead>
-              <tr><th>日期</th><th>項目</th><th className="num">實付金額</th><th>說明</th><th>操作</th></tr>
+              <tr><th>日期</th><th>大類</th><th className="num">實付金額</th><th>說明</th><th>操作</th></tr>
             </thead>
             <tbody>
               {rows.map((a) => (
                 <tr key={a.id}>
                   <td>{a.spent_on}</td>
-                  <td>{itemName(a.item_id) || <span className="hint">未指定</span>}</td>
+                  <td>{a.scope ? SCOPE_LABEL[a.scope] : <span className="hint">未指定</span>}</td>
                   <td className="num">{fmtTwd(a.amount)}</td>
                   <td className="note">{a.note}</td>
                   <td className="actions">
@@ -86,7 +82,7 @@ export default function Actuals() {
           </table>
         </div>
       )}
-      <ActualForm budgets={budgets} items={items} defaultBudgetId={budgetId} editing={editing} open={open} onClose={() => setOpen(false)} onSave={saveActual} />
+      <ActualForm budgets={budgets} defaultBudgetId={budgetId} editing={editing} open={open} onClose={() => setOpen(false)} onSave={saveActual} />
     </section>
   )
 }

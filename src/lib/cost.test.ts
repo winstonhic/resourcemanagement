@@ -112,10 +112,13 @@ describe('monthsBetween', () => {
 describe('plannedInPeriod', () => {
   const monthlyItem: Item = { ...base, id: 30, unit_price: 100, quantity: 1 } // 3,250 TWD/月
   const oneTimeItem: Item = { ...base, id: 31, kind: 'equipment', provider: '', category: '自建伺服器', billing: 'one_time', currency: 'TWD', unit_price: 380000, quantity: 1 }
-  it('只算指定 id 的項目:月費 × 月數 + 一次性', () => {
-    expect(plannedInPeriod([monthlyItem, oneTimeItem], [30, 31], 32.5, '2027-01-01', '2027-12-31')).toBe(3250 * 12 + 380000)
+  it('只算勾選大類的項目:月費 × 月數 + 一次性', () => {
+    expect(plannedInPeriod([monthlyItem, oneTimeItem], ['AWS', 'equipment'], 32.5, '2027-01-01', '2027-12-31')).toBe(3250 * 12 + 380000)
   })
-  it('沒勾的不算', () => {
-    expect(plannedInPeriod([monthlyItem, oneTimeItem], [30], 32.5, '2026-10-01', '2026-12-31')).toBe(3250 * 3)
+  it('沒勾的大類不算', () => {
+    expect(plannedInPeriod([monthlyItem, oneTimeItem], ['AWS'], 32.5, '2026-10-01', '2026-12-31')).toBe(3250 * 3)
+  })
+  it('雲端沒填 provider 歸「其他」', () => {
+    expect(plannedInPeriod([{ ...monthlyItem, provider: '' }], ['其他'], 32.5, '2026-10-01', '2026-10-31')).toBe(3250)
   })
 })
