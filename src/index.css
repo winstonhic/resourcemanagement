@@ -85,7 +85,7 @@ input.inline { width: 90px; display: inline-block; margin: 0 6px; padding: 3px 8
 
 /* ---------- 總覽 ---------- */
 .summary { display: flex; flex-direction: column; gap: 28px; }
-.title-row { max-width: 68ch; }
+.title-row { max-width: none; }
 .title-row h2 { margin-bottom: 8px; }
 .lede { color: var(--ink-2); font-size: 16px; }
 .lede strong { color: var(--ink); }

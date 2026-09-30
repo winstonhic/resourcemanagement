@@ -117,7 +117,7 @@ export default function Summary() {
     <div className="summary">
       <div className="title-row">
         <h2>資源與費用規劃</h2>
-        <p className="lede">2026 年第四季到 2027 年底,雲端租用、AI 工具訂閱與設備採購合計 <strong>{fmtTwd(grand)}</strong>({fmtWan(grand)})。設備採購安排在 2027 年第一季。</p>
+        <p className="lede">2026 年第四季到 2027 年底,雲端租用、AI 工具訂閱與設備採購合計 <strong>{fmtTwd(grand)}</strong>({fmtWan(grand)}),設備採購安排在 2027 年第一季。</p>
       </div>
 
       <div className="periods">
