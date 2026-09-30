@@ -167,6 +167,26 @@ tr.group-head .toggle {
 tr.group-head .chev { color: var(--ink-3); width: 10px; display: inline-block; }
 tr.group-head .count { color: var(--ink-3); font-weight: 400; font-size: 13px; }
 
+/* ---------- 總覽:預算執行 ---------- */
+.budget-rows { list-style: none; margin: 12px 0 8px; padding: 0; display: flex; flex-direction: column; gap: 18px; }
+.budget-rows li { padding-bottom: 14px; border-bottom: 1px solid var(--page); }
+.budget-rows li:last-child { border-bottom: 0; padding-bottom: 4px; }
+.budget-rows .head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; margin-bottom: 8px; }
+.budget-rows .head strong { display: block; font-size: 16px; }
+.budget-rows .sub { color: var(--ink-3); font-size: 13px; display: block; }
+.budget-rows .usage { text-align: right; }
+.budget-rows .usage .big { display: block; font-size: 24px; font-weight: 700; line-height: 1.1; }
+.budget-rows .track { position: relative; height: 14px; background: var(--page); }
+.budget-rows .track span { position: absolute; top: 0; left: 0; height: 100%; display: block; }
+.budget-rows .track .approved { background: #cfe3ea; }
+.budget-rows .track .spent { background: var(--teal); }
+.budget-rows li.over .track .spent { background: var(--danger); }
+.budget-rows .track .planned { width: 3px; background: var(--amber); transform: translateX(-1px); top: -3px; height: 20px; }
+.budget-rows .figures { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); margin-top: 10px; }
+.budget-rows .figures dt { display: flex; align-items: center; gap: 6px; }
+.swatch.approved { background: #cfe3ea; }
+.swatch.tick { width: 3px; height: 12px; background: var(--amber); border-radius: 0; }
+
 /* ---------- 預算 ---------- */
 .budgets { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; }
 .budget { background: var(--paper); border: 1px solid var(--line); border-top: 4px solid var(--teal); padding: 18px 22px 16px; }

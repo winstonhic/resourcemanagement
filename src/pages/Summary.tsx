@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import BudgetOverview from '../components/BudgetOverview'
 import ShareBars from '../components/ShareBars'
 import { periodTotals, providerBreakdown, totals } from '../lib/cost'
 import { useAuth } from '../lib/auth'
@@ -71,7 +72,7 @@ function GroupTable({ title, rows, unit }: { title: string; rows: ProviderShare[
 
 export default function Summary() {
   const { user } = useAuth()
-  const { items, rate, saveRate } = useData()
+  const { items, budgets, actuals, rate, saveRate } = useData()
   const [rateInput, setRateInput] = useState('')
   const [msg, setMsg] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
@@ -122,6 +123,8 @@ export default function Summary() {
       <div className="periods">
         {periods.map((p) => <PeriodCard key={p.key} title={p.title} sub={p.sub} months={p.months} t={p.t} />)}
       </div>
+
+      <BudgetOverview budgets={budgets} actuals={actuals} items={items} rate={rate} />
 
       <section className="where">
         <h3>錢花在哪裡</h3>
