@@ -7,8 +7,8 @@ import { fmtTwd, fmtWan } from '../lib/format'
 import type { CategoryTotal, PeriodTotals } from '../lib/cost'
 
 const PERIODS = [
-  { key: 'q4', title: '2026 第四季', sub: '10 月到 12 月,3 個月', months: 3, includeOneTime: true },
-  { key: 'y27', title: '2027 全年', sub: '1 月到 12 月,12 個月', months: 12, includeOneTime: false },
+  { key: 'q4', title: '2026 第四季', sub: '10 月到 12 月,3 個月', months: 3, includeOneTime: false },
+  { key: 'y27', title: '2027 全年', sub: '1 月到 12 月,12 個月;設備第一季購入', months: 12, includeOneTime: true },
 ] as const
 
 function PeriodCard({ title, sub, months, t }: { title: string; sub: string; months: number; t: PeriodTotals }) {
@@ -34,7 +34,7 @@ function PeriodCard({ title, sub, months, t }: { title: string; sub: string; mon
         </div>
         <div>
           <dt><i className="swatch one" />設備採購</dt>
-          <dd>{t.oneTime > 0 ? fmtTwd(t.oneTime) : '無'}</dd>
+          <dd>{t.oneTime > 0 ? fmtTwd(t.oneTime) : '這段期間沒有'}</dd>
         </div>
       </dl>
     </section>
@@ -108,7 +108,7 @@ export default function Summary() {
     <div className="summary">
       <div className="title-row">
         <h2>資源與費用規劃</h2>
-        <p className="lede">2026 年第四季到 2027 年底,雲端租用、AI 工具訂閱與設備採購合計 <strong>{fmtTwd(grand)}</strong>({fmtWan(grand)})。設備在 2026 年第四季一次購入。</p>
+        <p className="lede">2026 年第四季到 2027 年底,雲端租用、AI 工具訂閱與設備採購合計 <strong>{fmtTwd(grand)}</strong>({fmtWan(grand)})。設備採購安排在 2027 年第一季。</p>
       </div>
 
       <div className="periods">
