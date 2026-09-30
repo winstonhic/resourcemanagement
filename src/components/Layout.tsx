@@ -24,6 +24,8 @@ export default function Layout() {
           <NavLink to="/" end>總覽</NavLink>
           <NavLink to="/cloud">雲端與訂閱</NavLink>
           <NavLink to="/equipment">設備採購</NavLink>
+          <NavLink to="/budgets">核定預算</NavLink>
+          <NavLink to="/actuals">實際動用</NavLink>
         </nav>
         <div className="auth">
           <span className="email">{user.email}</span>

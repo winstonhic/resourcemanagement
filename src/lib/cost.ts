@@ -130,3 +130,18 @@ export function providerBreakdown(items: Item[], rate: number, months: number, i
     }))
     .sort((a, b) => b.total - a.total)
 }
+
+/** 起迄(YYYY-MM-DD)涵蓋幾個「月份」:同月算 1;迄日早於起日算 0。 */
+export function monthsBetween(start: string, end: string): number {
+  const [sy, sm] = start.split('-').map(Number)
+  const [ey, em] = end.split('-').map(Number)
+  const n = (ey - sy) * 12 + (em - sm) + 1
+  return n > 0 ? n : 0
+}
+
+/** 某筆預算勾選項目在期間內的計畫金額(TWD):月費 × 月數 + 一次性。 */
+export function plannedInPeriod(items: Item[], itemIds: number[], rate: number, start: string, end: string): number {
+  const months = monthsBetween(start, end)
+  const ids = new Set(itemIds)
+  return periodTotals(items.filter((i) => ids.has(i.id)), rate, months, true).total
+}

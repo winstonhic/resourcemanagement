@@ -160,6 +160,48 @@ td.indent { padding-left: 28px; color: var(--ink-2); }
 }
 .share-bars .children li { display: flex; justify-content: space-between; gap: 12px; }
 
+tr.group-head .toggle {
+  background: none; border: 0; padding: 0; color: var(--ink); font: inherit; font-weight: 600;
+  display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
+}
+tr.group-head .chev { color: var(--ink-3); width: 10px; display: inline-block; }
+tr.group-head .count { color: var(--ink-3); font-weight: 400; font-size: 13px; }
+
+/* ---------- 預算 ---------- */
+.budgets { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; }
+.budget { background: var(--paper); border: 1px solid var(--line); border-top: 4px solid var(--teal); padding: 18px 22px 16px; }
+.budget.over { border-top-color: var(--danger); }
+.budget > header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 0; border: 0; background: none; }
+.budget .sub { color: var(--ink-3); font-size: 13px; }
+.budget .hero { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin: 12px 0 10px; }
+.budget .amount { font-size: 30px; font-weight: 700; line-height: 1; }
+.budget .wan { color: var(--ink-2); font-size: 14px; }
+.progress { height: 10px; background: var(--line); }
+.progress span { display: block; height: 100%; background: var(--teal); }
+.budget.over .progress span { background: var(--danger); }
+.figures { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 12px 0 0; }
+.figures div { display: flex; flex-direction: column; }
+.figures dt { color: var(--ink-3); font-size: 13px; }
+.figures dd { margin: 0; font-weight: 600; }
+.figures dd.bad { color: var(--danger); }
+.figures.inline { grid-template-columns: repeat(3, auto); gap: 24px; margin: 0; }
+.warn { margin-top: 10px; color: var(--amber); font-size: 13px; }
+.budget details { margin-top: 12px; font-size: 14px; }
+.budget summary { cursor: pointer; color: var(--teal); }
+table.plain td { padding: 6px 8px; font-size: 13px; }
+table.plain tr:last-child td { border-bottom: 0; }
+.pick-budget { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px 32px; background: var(--paper); border: 1px solid var(--line); padding: 14px 18px; margin-bottom: 14px; }
+.pick-budget label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--ink-2); min-width: 240px; }
+.table-wrap table.actuals { min-width: 640px; }
+
+dialog.wide { width: min(640px, 94vw); }
+.pick { border: 1px solid var(--line); padding: 8px 12px 10px; margin: 0; max-height: 260px; overflow-y: auto; }
+.pick legend { font-size: 13px; color: var(--ink-2); padding: 0 4px; }
+.pick .check { display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: center; padding: 4px 0; font-size: 14px; color: var(--ink); }
+.pick .check input { width: auto; }
+.pick .check .amt { color: var(--ink-3); font-size: 13px; white-space: nowrap; }
+.pick .check .name { overflow-wrap: anywhere; }
+
 /* ---------- 表格 ---------- */
 .page-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
 .table-wrap { overflow-x: auto; background: var(--paper); border: 1px solid var(--line); }
@@ -232,6 +274,8 @@ dialog::backdrop { background: rgba(20, 33, 61, .45); }
   .share-bars .track { grid-area: track; height: 10px; }
   .share-bars .children { grid-column: 1 / -1; }
   .basis ul { padding-left: 16px; }
+  .figures.inline { grid-template-columns: repeat(3, 1fr); gap: 8px; width: 100%; }
+  .budget .amount { font-size: 26px; }
 }
 @media (prefers-reduced-motion: no-preference) {
   .share-bars .bar, .split .seg { transition: width .35s ease-out; }

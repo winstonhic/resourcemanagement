@@ -20,3 +20,29 @@ export interface Item {
 }
 
 export type ItemInput = Omit<Item, 'id'>
+
+export interface Budget {
+  id: number
+  name: string
+  /** 核定金額 TWD */
+  amount: number
+  /** YYYY-MM-DD */
+  start_date: string
+  end_date: string
+  note: string
+  /** 預計動用的項目 id */
+  item_ids: number[]
+}
+export type BudgetInput = Omit<Budget, 'id'>
+
+export interface Actual {
+  id: number
+  budget_id: number
+  item_id: number | null
+  /** YYYY-MM-DD */
+  spent_on: string
+  /** 實付 TWD */
+  amount: number
+  note: string
+}
+export type ActualInput = Omit<Actual, 'id'>

@@ -98,3 +98,24 @@ describe('providerBreakdown', () => {
     expect(r[0].children).toEqual([])
   })
 })
+
+import { monthsBetween, plannedInPeriod } from './cost'
+
+describe('monthsBetween', () => {
+  it('同月算 1', () => expect(monthsBetween('2026-10-01', '2026-10-31')).toBe(1))
+  it('2026-10 到 2026-12 算 3', () => expect(monthsBetween('2026-10-01', '2026-12-31')).toBe(3))
+  it('2027 整年算 12', () => expect(monthsBetween('2027-01-01', '2027-12-31')).toBe(12))
+  it('跨年 2026-10 到 2027-03 算 6', () => expect(monthsBetween('2026-10-15', '2027-03-01')).toBe(6))
+  it('迄日早於起日算 0', () => expect(monthsBetween('2027-01-01', '2026-12-31')).toBe(0))
+})
+
+describe('plannedInPeriod', () => {
+  const monthlyItem: Item = { ...base, id: 30, unit_price: 100, quantity: 1 } // 3,250 TWD/月
+  const oneTimeItem: Item = { ...base, id: 31, kind: 'equipment', provider: '', category: '自建伺服器', billing: 'one_time', currency: 'TWD', unit_price: 380000, quantity: 1 }
+  it('只算指定 id 的項目:月費 × 月數 + 一次性', () => {
+    expect(plannedInPeriod([monthlyItem, oneTimeItem], [30, 31], 32.5, '2027-01-01', '2027-12-31')).toBe(3250 * 12 + 380000)
+  })
+  it('沒勾的不算', () => {
+    expect(plannedInPeriod([monthlyItem, oneTimeItem], [30], 32.5, '2026-10-01', '2026-12-31')).toBe(3250 * 3)
+  })
+})

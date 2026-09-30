@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { subtotalTwd } from '../lib/cost'
 import { BILLING_LABEL, fmtNumber, fmtTwd } from '../lib/format'
 import type { Item } from '../lib/types'
@@ -11,6 +12,13 @@ interface Props {
 }
 
 export default function ItemTable({ items, rate, canEdit, onEdit, onDelete }: Props) {
+  const [collapsed, setCollapsed] = useState<Set<string>>(new Set())
+  const toggle = (label: string) => setCollapsed((c) => {
+    const n = new Set(c)
+    if (n.has(label)) n.delete(label)
+    else n.add(label)
+    return n
+  })
   const sub = (it: Item) => (rate === null ? null : subtotalTwd(it, rate))
   const monthly = items.filter((i) => i.billing === 'monthly').reduce((s, i) => s + (sub(i) ?? 0), 0)
   const oneTime = items.filter((i) => i.billing === 'one_time').reduce((s, i) => s + (sub(i) ?? 0), 0)
@@ -53,12 +61,18 @@ export default function ItemTable({ items, rate, canEdit, onEdit, onDelete }: Pr
         <tbody key={g.label ?? '_'}>
           {g.label !== null && (
             <tr className="group-head">
-              <td colSpan={7}>{g.label}</td>
+              <td colSpan={7}>
+                <button type="button" className="toggle" aria-expanded={!collapsed.has(g.label)} onClick={() => toggle(g.label!)}>
+                  <span className="chev">{collapsed.has(g.label) ? '▸' : '▾'}</span>
+                  {g.label}
+                  <span className="count">{g.rows.length} 筆</span>
+                </button>
+              </td>
               <td className="num">{rate === null ? '—' : fmtTwd(g.rows.reduce((s, i) => s + (sub(i) ?? 0), 0))}</td>
               <td colSpan={cols - 8} />
             </tr>
           )}
-          {g.rows.map((it) => {
+          {(g.label === null || !collapsed.has(g.label)) && g.rows.map((it) => {
             const s = sub(it)
             return (
               <tr key={it.id}>
