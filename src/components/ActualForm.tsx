@@ -35,6 +35,7 @@ export default function ActualForm({ budgets, defaultBudgetId, editing, open, on
   // 只列出該預算涵蓋的大類;沒勾任何大類就列全部
   const budget = budgets.find((b) => String(b.id) === form.budget_id)
   const pickable: Scope[] = budget && budget.scopes.length > 0 ? budget.scopes : SCOPES
+  const outOfPeriod = budget && form.spent_on && (form.spent_on < budget.start_date || form.spent_on > budget.end_date)
 
   const submit = async (e: FormEvent) => {
     e.preventDefault()
@@ -88,6 +89,9 @@ export default function ActualForm({ budgets, defaultBudgetId, editing, open, on
             <input type="number" min="0" step="1" value={form.amount} onChange={set('amount')} required />
           </label>
         </div>
+        {outOfPeriod && budget && (
+          <p className="warn">這個日期不在「{budget.name}」的期間({budget.start_date} 到 {budget.end_date})內。仍可儲存,但總覽依日期歸期的圖不會把它算進該期。</p>
+        )}
         <label>
           說明
           <textarea value={form.note} onChange={set('note')} rows={2} placeholder="發票號、帳單月份…" />
