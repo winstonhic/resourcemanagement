@@ -191,10 +191,30 @@ dialog::backdrop { background: rgba(20, 33, 61, .45); }
 
 @media (max-width: 560px) {
   header { padding: 0 16px; }
+  nav { gap: 0 18px; }
+  nav a { padding: 12px 0 10px; }
+  .auth { width: 100%; justify-content: space-between; padding: 0 0 10px; }
   main { padding: 20px 16px 40px; }
-  .period .amount { font-size: 32px; }
-  .share-bars li { grid-template-columns: 1fr; gap: 4px; }
-  .share-bars .val { justify-self: end; }
+  h2 { font-size: 22px; }
+  .lede { font-size: 15px; }
+  .period { padding: 16px 18px 18px; }
+  .period header { flex-direction: column; align-items: flex-start; gap: 2px; }
+  .period .sub { white-space: normal; }
+  .period .amount { font-size: 34px; }
+  .period .hero { margin: 10px 0 14px; }
+  .where { padding: 16px 18px 6px; }
+  .where-grid { gap: 16px; }
+  /* 每列兩行:類別 + 金額一行,長條一行 */
+  .share-bars li {
+    grid-template-columns: 1fr auto;
+    grid-template-areas: "cat val" "track track";
+    gap: 4px 12px;
+    padding: 8px 0;
+  }
+  .share-bars .cat { grid-area: cat; color: var(--ink); }
+  .share-bars .val { grid-area: val; font-size: 14px; }
+  .share-bars .track { grid-area: track; height: 10px; }
+  .basis ul { padding-left: 16px; }
 }
 @media (prefers-reduced-motion: no-preference) {
   .share-bars .bar, .split .seg { transition: width .35s ease-out; }
