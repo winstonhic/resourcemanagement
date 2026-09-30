@@ -21,7 +21,7 @@ type Form = Record<'provider' | 'category' | 'name' | 'spec' | 'quantity' | 'uni
 
 function emptyForm(kind: Kind): Form {
   return {
-    provider: kind === 'cloud' ? 'Azure' : '',
+    provider: kind === 'cloud' ? 'AWS' : '',
     category: '', name: '', spec: '', quantity: '1', unit_price: '',
     currency: kind === 'cloud' ? 'USD' : 'TWD',
     billing: kind === 'cloud' ? 'monthly' : 'one_time',
